@@ -67,26 +67,15 @@ class AbsenController extends Controller
 
     public function absenMasuk(Request $request, $id)
     {
+        // Mendapatkan alamat IP pengguna
         $ip = file_get_contents("http://ipecho.net/plain");
 
         $url = 'http://ip-api.com/json/' . $ip;
+        $locationInfo = json_decode(file_get_contents($url), true);
 
-        $tz = file_get_contents($url);
-
-        $tz = json_decode($tz, true)['timezone'];
-
-        date_default_timezone_set($tz);
-
-        // This start to get the timezone
-        $pcTimezone = date_default_timezone_get();
-
-        // Step 2: Create a DateTimeZone object using your PC's timezone
-        $timezone = new DateTimeZone($pcTimezone);
-
-        // Step 3: Create a DateTime object using the DateTimeZone object and the current time
+        $timezone = new DateTimeZone($locationInfo['timezone']);
         $currentDateTime = new DateTime("now", $timezone);
-
-        $formattedDateTime = $currentDateTime->format("H:i");
+        $formattedTime = $currentDateTime->format("H:i");
         $full_jam_absen = $currentDateTime->format("Y-m-d H:i:s O");
         // This end the timezone
 
@@ -99,7 +88,7 @@ class AbsenController extends Controller
 
         $request["jarak_masuk"] = $this->distance($request["lat_absen"], $request["long_absen"], $lat_kantor, $long_kantor, "K") * 1000;
 
-        $request["jam_absen"] = $formattedDateTime;
+        $request["jam_absen"] = $formattedTime;
 
         if ($request["jarak_masuk"] > $radius) {
             Alert::error('Diluar Jangkauan', 'Lokasi Anda Diluar Radius ' . $nama_lokasi);
