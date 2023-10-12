@@ -69,7 +69,7 @@ class authController extends Controller
             'username' => 'required',
             'password' => 'required'
         ]);
-        
+
         $remember_me = $request->has('remember') ? true : false;
 
         if (Auth::attempt($credentials, $remember_me)) {
