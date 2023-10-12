@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Psy\Readline\Hoa\Console;
 use RealRashid\SweetAlert\Facades\Alert;
+use Stevebauman\Location\Facades\Location;
 
 function get_local_time()
 {
@@ -67,16 +68,26 @@ class AbsenController extends Controller
 
     public function absenMasuk(Request $request, $id)
     {
+
         // Mendapatkan alamat IP pengguna
         $ip = file_get_contents("http://ipecho.net/plain");
 
+        // Mendapatkan informasi zona waktu berdasarkan alamat IP
         $url = 'http://ip-api.com/json/' . $ip;
         $locationInfo = json_decode(file_get_contents($url), true);
 
+        // Mengambil zona waktu dari informasi lokasi
         $timezone = new DateTimeZone($locationInfo['timezone']);
+
+        // Membuat objek DateTime berdasarkan zona waktu pengguna
         $currentDateTime = new DateTime("now", $timezone);
+
+        // Mendapatkan jam saat ini
         $formattedTime = $currentDateTime->format("H:i");
+
+        // Mendapatkan tanggal dan waktu lengkap
         $full_jam_absen = $currentDateTime->format("Y-m-d H:i:s O");
+
         // This end the timezone
 
         $request["full_jam_absen"] = $full_jam_absen;
@@ -89,7 +100,6 @@ class AbsenController extends Controller
         $request["jarak_masuk"] = $this->distance($request["lat_absen"], $request["long_absen"], $lat_kantor, $long_kantor, "K") * 1000;
 
         $request["jam_absen"] = $formattedTime;
-
         if ($request["jarak_masuk"] > $radius) {
             Alert::error('Diluar Jangkauan', 'Lokasi Anda Diluar Radius ' . $nama_lokasi);
             return redirect('/absen');
